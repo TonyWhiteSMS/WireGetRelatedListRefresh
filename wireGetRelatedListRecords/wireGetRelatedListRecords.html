@@ -1,0 +1,35 @@
+<template>
+    <div class=slds-box_border>
+        <div class="slds-theme_shade slds-p-around_small">
+            Loading Related List Demo
+            <div class="slds-p-vertical_small">
+                <lightning-button label="Create New Contact"
+                                  class="slds-p-left_small"
+                                  onclick={createNewContact}>
+                </lightning-button>
+
+                <lightning-button label="Refresh"
+                                  class="slds-p-left_small"
+                                  onclick={handleRefresh}>
+                </lightning-button>
+            </div>
+        </div>
+        <template for:each={results} for:item="result">
+            <template lwc:if={result.result}>
+                <lightning-card
+                        key={result.result.listReference.relatedListId}
+                        title={result.result.listReference.relatedListId}>
+                    <template lwc:if={result.result.count}>
+                        <div class="slds-m-around_medium">
+                            <template for:each={result.result.records} for:item="rec">
+                                <template if:true={rec.fields.Name}>
+                                    <p key={rec.fields.Name.value}>{rec.fields.Name.value}</p>
+                                </template>
+                            </template>
+                        </div>
+                    </template>
+                </lightning-card>
+            </template>
+        </template>
+    </div>
+</template>
