@@ -12,6 +12,7 @@ export default class WireGetRelatedListRecords extends LightningElement {
     @api recordId;
     error;
     results;
+    wireRelatedList;
 
     @wire(getRelatedListRecordsBatch, {
         parentRecordId: '$recordId',
@@ -27,13 +28,14 @@ export default class WireGetRelatedListRecords extends LightningElement {
                 sortBy: ["CaseNumber"],
             },
         ],
-    }) listInfo({error, data}) {
-        if (data) {
-            this.results = data.results;
+    }) listInfo(resultInfo) {
+        this.wireRelatedList = resultInfo;
+        if (resultInfo.data) {
+            this.results = resultInfo.data.results;
             console.log(JSON.stringify(this.results, null, 4));
             this.error = undefined;
-        } else if (error) {
-            this.error = error;
+        } else if (resultInfo.error) {
+            this.error = resultInfo.error;
             this.results = undefined;
         }
     }
