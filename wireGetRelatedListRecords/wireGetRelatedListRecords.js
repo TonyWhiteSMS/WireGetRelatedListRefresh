@@ -57,6 +57,7 @@ export default class WireGetRelatedListRecords extends LightningElement {
                         variant: "success",
                     }),
                 );
+                this.handleRefresh();
             })
             .catch((error) => {
                 console.log(error.body);
