@@ -2,6 +2,15 @@
 import {api, LightningElement, wire} from 'lwc';
 import {getRelatedListRecordsBatch} from 'lightning/uiRelatedListApi';
 import {createRecord, getFieldValue, notifyRecordUpdateAvailable} from "lightning/uiRecordApi";
+import {
+    registerRefreshContainer,
+    unregisterRefreshContainer,
+    REFRESH_ERROR,
+    REFRESH_COMPLETE,
+    REFRESH_COMPLETE_WITH_ERRORS,
+    RefreshEvent
+} from "lightning/refresh";
+import {refreshApex} from '@salesforce/apex';
 import {ShowToastEvent} from "lightning/platformShowToastEvent";
 import CONTACT_OBJECT from "@salesforce/schema/Contact";
 import FIRSTNAME_FIELD from "@salesforce/schema/Contact.FirstName";
@@ -14,12 +23,38 @@ export default class WireGetRelatedListRecords extends LightningElement {
     results;
     wireRelatedList;
 
+    refreshContainerID;
+
+    connectedCallback() {
+        this.refreshContainerID = registerRefreshContainer(
+            this.template.host,
+            this.refreshContainer.bind(this),
+        );
+    }
+
+    disconnectedCallback() {
+        unregisterRefreshContainer(this.refreshContainerID);
+    }
+
+    refreshContainer(refreshPromise) {
+        console.log("refreshing");
+        return refreshPromise.then((status) => {
+            if (status === REFRESH_COMPLETE) {
+                console.log("Done!");
+            } else if (status === REFRESH_COMPLETE_WITH_ERRORS) {
+                console.warn("Done, with issues refreshing some components");
+            } else if (status === REFRESH_ERROR) {
+                console.error("Major error with refresh.");
+            }
+        });
+    }
+
     @wire(getRelatedListRecordsBatch, {
         parentRecordId: '$recordId',
         relatedListParameters: [
             {
                 relatedListId: "Contacts",
-                fields: ["Contact.Name", "Contact.Id"],
+                fields: ["Contact.Name", "Contact.Id", "Account.Id"],
                 sortBy: ["Name"],
             },
             {
@@ -87,6 +122,21 @@ export default class WireGetRelatedListRecords extends LightningElement {
                 }),
             );
         });
-
+        this.dispatchEvent(new RefreshEvent());
+        this.refreshApex(this.wireRelatedList).then((result) => {
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: "Success",
+                    message: 'Refresh Completed: ' + result,
+                    variant: "success",
+                }),
+            );
+        }).catch((ex) => {
+            this.dispatchEvent(new ShowToastEvent({
+                title: "Error",
+                message: 'Error: ' + JSON.stringify(ex),
+                variant: "error",
+            }))
+        })
     }
 }
