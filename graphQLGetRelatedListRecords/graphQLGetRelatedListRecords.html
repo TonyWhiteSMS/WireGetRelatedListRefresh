@@ -1,0 +1,31 @@
+<template>
+    <div class=slds-box_border>
+        <div class="slds-theme_shade slds-p-around_small">
+            Loading Related List Demo
+            <div class="slds-p-vertical_small">
+                <lightning-button label="Create New Contact"
+                                  class="slds-p-left_small"
+                                  onclick={createNewContact}>
+                </lightning-button>
+
+                <lightning-button label="Refresh"
+                                  class="slds-p-left_small"
+                                  onclick={handleRefresh}>
+                </lightning-button>
+            </div>
+            <template lwc:if={contacts.data}>
+                <template
+                    for:each={contacts.data.uiapi.query.Account.edges}
+                    for:item="acc"
+                >
+                <template
+                for:each={acc.node.Contacts.edges}
+                for:item="contact"
+            >
+                    <p key={contact.node.Id}>{contact.node.Name.value}</p>
+                </template>
+                </template>
+            </template>
+        </div>
+    </div>
+</template>
